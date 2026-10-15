@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>在线作业作答</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%9D%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/style.css?v=20261010b">
+</head>
+<body>
+<div id="student-shell">
+  <header class="student-header">
+    <div class="student-logo">📝 在线作业作答</div>
+    <div class="student-header-sub">选择作业 · 填写姓名学号 · 完成作答并提交</div>
+  </header>
+
+  <!-- 步骤一：作业列表 -->
+  <main class="student-main" id="step-list">
+    <div class="student-section-title">可作答的作业</div>
+    <div id="assignment-cards" class="assignment-cards">
+      <div class="student-loading">作业加载中…</div>
+    </div>
+  </main>
+
+  <!-- 步骤二：作答 -->
+  <main class="student-main" id="step-paper" style="display:none">
+    <button class="back-btn" id="btn-back-list">← 返回作业列表</button>
+    <div class="paper-head-card">
+      <h2 id="paper-title">-</h2>
+      <div class="paper-meta" id="paper-meta"></div>
+    </div>
+
+    <div class="identity-card">
+      <div class="identity-title">你的信息 <i>*</i></div>
+      <div class="identity-row">
+        <label>姓名
+          <input type="text" id="stu-name" maxlength="50" placeholder="请输入真实姓名">
+        </label>
+        <label>学号
+          <input type="text" id="stu-no" maxlength="30" placeholder="请输入学号（用于防止重复提交）">
+        </label>
+      </div>
+    </div>
+
+    <div id="paper-questions"></div>
+
+    <div class="paper-submit-bar">
+      <span class="paper-tip">提交后客观题即时判分，主观题由老师批改</span>
+      <button class="btn-primary" id="btn-submit-paper">✅ 提交作业</button>
+    </div>
+  </main>
+
+  <!-- 步骤三：结果 -->
+  <main class="student-main" id="step-result" style="display:none">
+    <div class="result-card" id="result-card"></div>
+    <div class="result-actions">
+      <button class="btn-primary" id="btn-result-back">继续作答其他作业</button>
+    </div>
+  </main>
+</div>
+
+<script src="/lib/axios.min.js"></script>
+<script src="/js/api.js?v=20261010"></script>
+<script src="/js/student.js?v=20261010"></script>
+</body>
+</html>
