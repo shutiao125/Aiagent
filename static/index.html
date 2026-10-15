@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 辅助教学系统 · 管理台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%93%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/style.css?v=20261010b">
+</head>
+<body>
+<div id="app-shell">
+  <!-- ========== 左侧功能导航 ========== -->
+  <aside id="sidebar">
+    <div class="brand">
+      <span class="logo">🎓</span>
+      <div class="brand-text">
+        <div class="brand-name">AI 辅助教学</div>
+        <div class="brand-sub">教学管理工作台</div>
+      </div>
+    </div>
+    <nav class="nav-menu" id="nav-menu">
+      <button class="nav-item active" data-view="home"><span class="nav-ico">🏠</span>教学首页</button>
+      <button class="nav-item" data-view="classes"><span class="nav-ico">👥</span>班级管理</button>
+      <button class="nav-item" data-view="courses"><span class="nav-ico">📚</span>课程管理</button>
+      <button class="nav-item" data-view="assignments"><span class="nav-ico">📝</span>作业习题</button>
+      <button class="nav-item nav-item-highlight" data-view="generate"><span class="nav-ico">✨</span>AI 生成作业</button>
+      <button class="nav-item" data-view="chat"><span class="nav-ico">💬</span>AI 答疑</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="foot-dot"></div>
+      <span id="sidebar-mode">模型加载中…</span>
+    </div>
+  </aside>
+
+  <!-- ========== 右侧模块主页 ========== -->
+  <main id="main">
+    <!-- 教学首页 -->
+    <section class="view active" id="view-home">
+      <div class="page-wrap">
+        <div class="page-head">
+          <div>
+            <h2>教学首页</h2>
+            <div class="sub">班级、课程、作业习题与 AI 生成情况一览</div>
+          </div>
+        </div>
+        <div class="stat-grid" id="stat-grid">
+          <div class="stat-card"><div class="stat-ico c-blue">👥</div><div class="stat-info"><div class="stat-num" id="stat-classes">-</div><div class="stat-label">班级</div></div></div>
+          <div class="stat-card"><div class="stat-ico c-green">📚</div><div class="stat-info"><div class="stat-num" id="stat-courses">-</div><div class="stat-label">专业课程</div></div></div>
+          <div class="stat-card"><div class="stat-ico c-purple">📝</div><div class="stat-info"><div class="stat-num" id="stat-assignments">-</div><div class="stat-label">作业</div></div></div>
+          <div class="stat-card"><div class="stat-ico c-orange">❓</div><div class="stat-info"><div class="stat-num" id="stat-questions">-</div><div class="stat-label">习题</div></div></div>
+        </div>
+        <div class="table-card">
+          <div class="card-head">
+            <h3>最近更新的作业</h3>
+            <button class="link-btn" id="home-go-assignments">查看全部 →</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>作业标题</th><th style="width:130px">班级</th><th style="width:150px">课程</th><th style="width:80px">题量</th><th style="width:90px">来源</th><th style="width:140px">更新时间</th><th style="width:80px">操作</th></tr>
+            </thead>
+            <tbody id="home-recent-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 班级管理 -->
+    <section class="view" id="view-classes">
+      <div class="page-wrap">
+        <div class="page-head">
+          <div>
+            <h2>班级管理</h2>
+            <div class="sub">维护授课班级，作业按班级组织与查看</div>
+          </div>
+          <button class="btn-primary" id="btn-add-class">＋ 新增班级</button>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr><th style="width:60px">ID</th><th style="width:180px">班级名称</th><th style="width:140px">年级</th><th>备注</th><th style="width:170px">创建时间</th><th style="width:130px">操作</th></tr>
+            </thead>
+            <tbody id="classes-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 课程管理 -->
+    <section class="view" id="view-courses">
+      <div class="page-wrap">
+        <div class="page-head">
+          <div>
+            <h2>课程管理</h2>
+            <div class="sub">维护专业课程，AI 按课程特点与知识点命题</div>
+          </div>
+          <button class="btn-primary" id="btn-add-course">＋ 新增课程</button>
+        </div>
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr><th style="width:60px">ID</th><th style="width:200px">课程名称</th><th style="width:180px">所属专业</th><th>备注</th><th style="width:170px">创建时间</th><th style="width:130px">操作</th></tr>
+            </thead>
+            <tbody id="courses-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 作业习题：作业列表 / 待批 / 已批 -->
+    <section class="view" id="view-assignments">
+      <!-- 作业列表 -->
+      <div class="page-wrap" id="assignment-list-pane">
+        <div class="page-head">
+          <div>
+            <h2>作业习题管理</h2>
+            <div class="sub">管理各班级作业习题，支持在线查看、增删改查</div>
+          </div>
+          <div class="head-actions-row">
+            <a class="btn-student-entry" href="/student" target="_blank">
+              <span class="bse-ico">🎒</span> 学生作答入口 <span class="bse-arrow">↗</span>
+            </a>
+            <button class="btn-primary" id="btn-add-assignment">＋ 新建作业</button>
+          </div>
+        </div>
+        <div class="sub-tabs" id="assign-sub-tabs">
+          <button class="sub-tab active" data-pane="list">📝 作业列表</button>
+          <button class="sub-tab" data-pane="pending">⏳ 待批作业 <span class="tab-badge" id="tab-pending-count">0</span></button>
+          <button class="sub-tab" data-pane="graded">✅ 已批作业</button>
+        </div>
+        <div id="pane-tab-list">
+          <div class="filter-bar">
+            <select id="filter-class"><option value="">全部班级</option></select>
+            <select id="filter-course"><option value="">全部课程</option></select>
+            <input type="text" id="filter-keyword" placeholder="搜索作业标题…" maxlength="150">
+            <button class="btn-ghost" id="btn-filter-search">🔍 查询</button>
+            <button class="btn-ghost btn-text" id="btn-filter-reset">重置</button>
+          </div>
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr><th>作业标题</th><th style="width:130px">班级</th><th style="width:150px">课程</th><th style="width:80px">难度</th><th style="width:70px">题量</th><th style="width:90px">提交/待批</th><th style="width:80px">来源</th><th style="width:140px">更新时间</th><th style="width:150px">操作</th></tr>
+              </thead>
+              <tbody id="assignments-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="pane-tab-pending" style="display:none">
+          <div class="filter-bar">
+            <select id="pending-filter-class"><option value="">全部班级</option></select>
+            <input type="text" id="pending-keyword" placeholder="搜索学生姓名 / 学号 / 作业标题…">
+            <button class="btn-ghost" id="btn-pending-search">🔍 查询</button>
+          </div>
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr><th>学生</th><th style="width:130px">学号</th><th>作业</th><th style="width:130px">班级</th><th style="width:120px">提交时间</th><th style="width:120px">客观题进度</th><th style="width:110px">当前得分</th><th style="width:90px">操作</th></tr>
+              </thead>
+              <tbody id="pending-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="pane-tab-graded" style="display:none">
+          <div class="filter-bar">
+            <select id="graded-filter-class"><option value="">全部班级</option></select>
+            <input type="text" id="graded-keyword" placeholder="搜索学生姓名 / 学号 / 作业标题…">
+            <button class="btn-ghost" id="btn-graded-search">🔍 查询</button>
+          </div>
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr><th>学生</th><th style="width:130px">学号</th><th>作业</th><th style="width:130px">班级</th><th style="width:140px">批改时间</th><th style="width:100px">总得分</th><th style="width:90px">操作</th></tr>
+              </thead>
+              <tbody id="graded-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 作业详情 -->
+      <div class="page-wrap" id="assignment-detail-pane" style="display:none">
+        <button class="back-btn" id="btn-back-assignments">← 返回作业列表</button>
+        <div class="detail-head-card">
+          <div class="detail-head-main">
+            <h2 id="detail-title">-</h2>
+            <div class="detail-meta" id="detail-meta"></div>
+            <div class="detail-requirement" id="detail-requirement"></div>
+          </div>
+          <div class="detail-head-actions">
+            <button class="btn-ghost" id="btn-edit-assignment">✏️ 编辑作业</button>
+            <button class="btn-danger-solid" id="btn-delete-assignment">🗑️ 删除作业</button>
+          </div>
+        </div>
+        <div class="detail-questions-head">
+          <h3>题目列表（<span id="detail-count">0</span>）</h3>
+          <button class="btn-primary btn-sm" id="btn-add-question">＋ 添加题目</button>
+        </div>
+        <div id="question-list"></div>
+      </div>
+
+      <!-- 批改工作台 -->
+      <div class="page-wrap" id="grading-pane" style="display:none">
+        <button class="back-btn" id="btn-back-grading">← 返回列表</button>
+        <div class="detail-head-card">
+          <div class="detail-head-main">
+            <h2 id="grading-title">批改作业</h2>
+            <div class="detail-meta" id="grading-meta"></div>
+          </div>
+          <div class="detail-head-actions">
+            <div class="grading-score-box">
+              <span class="grading-score-num" id="grading-total">0</span>
+              <span class="grading-score-max">/ <span id="grading-max">0</span> 分</span>
+            </div>
+            <button class="btn-primary" id="btn-save-grade">💾 保存批改</button>
+          </div>
+        </div>
+        <div id="grading-list"></div>
+      </div>
+    </section>
+
+    <!-- AI 生成作业 -->
+    <section class="view" id="view-generate">
+      <div class="page-wrap generate-wrap">
+        <div class="page-head">
+          <div>
+            <h2>✨ AI 生成作业</h2>
+            <div class="sub">选择班级与专业课程，按课程特点、题型与数量智能命制作业习题</div>
+          </div>
+        </div>
+        <div class="generate-card">
+          <div class="gen-grid">
+            <div class="field">
+              <label>授课班级 <i>*</i></label>
+              <select id="gen-class"></select>
+            </div>
+            <div class="field">
+              <label>专业课程 <i>*</i></label>
+              <select id="gen-course"></select>
+            </div>
+            <div class="field">
+              <label>作业标题（可留空，自动生成）</label>
+              <input type="text" id="gen-title" maxlength="150" placeholder="例如：数据结构第三章·线性表练习">
+            </div>
+            <div class="field">
+              <label>难度</label>
+              <select id="gen-difficulty">
+                <option value="1">简单</option>
+                <option value="2" selected>中等</option>
+                <option value="3">困难</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>题型与数量 <i>*</i>（单次最多 30 题，至少填一种）</label>
+            <div class="qtype-grid">
+              <div class="qtype-pill"><span class="qt-badge qt-single">单选题</span><input type="number" min="0" max="30" value="2" data-qtype="single"></div>
+              <div class="qtype-pill"><span class="qt-badge qt-multiple">多选题</span><input type="number" min="0" max="30" value="1" data-qtype="multiple"></div>
+              <div class="qtype-pill"><span class="qt-badge qt-judge">判断题</span><input type="number" min="0" max="30" value="1" data-qtype="judge"></div>
+              <div class="qtype-pill"><span class="qt-badge qt-fill">填空题</span><input type="number" min="0" max="30" value="1" data-qtype="fill"></div>
+              <div class="qtype-pill"><span class="qt-badge qt-short">简答题</span><input type="number" min="0" max="30" value="1" data-qtype="short"></div>
+              <div class="qtype-total">合计 <b id="gen-total">6</b> 题</div>
+            </div>
+          </div>
+          <div class="field">
+            <label>知识点 / 出题要求（可选）</label>
+            <textarea id="gen-requirement" rows="3" placeholder="例如：侧重线性表的顺序存储与链式存储，考查插入、删除、查找操作，避免超纲算法"></textarea>
+          </div>
+          <div class="gen-actions">
+            <span class="gen-hint">💡 生成后可在作业详情中逐题校对、修改答案后再使用</span>
+            <button class="btn-primary btn-lg" id="btn-generate">✨ 开始 AI 生成</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI 答疑 -->
+    <section class="view" id="view-chat">
+      <div class="chat-layout">
+        <div class="chat-side">
+          <button class="btn-new-chat" id="btn-new-chat">＋ 新建答疑会话</button>
+          <div class="conv-list" id="conv-list"></div>
+        </div>
+        <div class="chat-main-wrap">
+          <iframe id="chat-frame" title="AI 答疑窗口" allow="clipboard-read; clipboard-write"></iframe>
+          <div class="chat-empty-mask" id="chat-empty-mask">
+            <div class="box">
+              <div class="big">💬</div>
+              <div>选择左侧会话，或新建答疑会话开始提问</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ========== 班级/课程编辑弹窗（通用） ========== -->
+<div class="modal-mask" id="basic-modal">
+  <div class="modal" style="width:460px">
+    <div class="modal-head" id="basic-modal-title">新增</div>
+    <div class="modal-body">
+      <input type="hidden" id="basic-id">
+      <div class="field">
+        <label id="basic-name-label">名称</label>
+        <input type="text" id="basic-name" maxlength="80">
+      </div>
+      <div class="field" id="basic-extra-field">
+        <label id="basic-extra-label">年级</label>
+        <input type="text" id="basic-extra" maxlength="80">
+      </div>
+      <div class="field">
+        <label>备注</label>
+        <textarea id="basic-remark" rows="2" maxlength="200"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="basic-cancel">取消</button>
+      <button class="btn-primary" id="basic-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 作业编辑弹窗 ========== -->
+<div class="modal-mask" id="assignment-modal">
+  <div class="modal" style="width:520px">
+    <div class="modal-head" id="assignment-modal-title">新建作业</div>
+    <div class="modal-body">
+      <input type="hidden" id="assignment-id">
+      <div class="field">
+        <label>作业标题 <i>*</i></label>
+        <input type="text" id="assignment-title" maxlength="150" placeholder="例如：数据结构第一次作业">
+      </div>
+      <div class="gen-grid">
+        <div class="field">
+          <label>班级 <i>*</i></label>
+          <select id="assignment-class"></select>
+        </div>
+        <div class="field">
+          <label>课程 <i>*</i></label>
+          <select id="assignment-course"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>难度</label>
+        <select id="assignment-difficulty">
+          <option value="1">简单</option>
+          <option value="2" selected>中等</option>
+          <option value="3">困难</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>作业要求（可选）</label>
+        <textarea id="assignment-requirement" rows="2" maxlength="500"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="assignment-cancel">取消</button>
+      <button class="btn-primary" id="assignment-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 题目编辑弹窗 ========== -->
+<div class="modal-mask" id="question-modal">
+  <div class="modal" style="width:600px">
+    <div class="modal-head" id="question-modal-title">添加题目</div>
+    <div class="modal-body">
+      <input type="hidden" id="question-id">
+      <div class="field field-inline-2">
+        <div>
+          <label>题型</label>
+          <select id="question-type">
+            <option value="single">单选题</option>
+            <option value="multiple">多选题</option>
+            <option value="judge">判断题</option>
+            <option value="fill">填空题</option>
+            <option value="short">简答题</option>
+          </select>
+        </div>
+        <div>
+          <label>本题分值（1-100）</label>
+          <input type="number" id="question-score" min="1" max="100" step="1" value="5">
+        </div>
+      </div>
+      <div class="field">
+        <label>题干 <i>*</i></label>
+        <textarea id="question-stem" rows="3" placeholder="输入题干内容"></textarea>
+      </div>
+      <div class="field" id="question-options-field">
+        <label>选项（至少 2 个）与正确答案</label>
+        <div id="question-options-box"></div>
+        <button type="button" class="btn-ghost btn-sm" id="btn-add-option" style="margin-top:8px">＋ 添加选项</button>
+      </div>
+      <div class="field" id="question-answer-field">
+        <label id="question-answer-label">参考答案 <i>*</i></label>
+        <textarea id="question-answer" rows="2" placeholder="填空答案多空用分号分隔；简答按要点分条作答"></textarea>
+      </div>
+      <div class="field">
+        <label>解析 / 评分要点（可选）</label>
+        <textarea id="question-analysis" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="question-cancel">取消</button>
+      <button class="btn-primary" id="question-save">保存题目</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 通用确认弹窗 ========== -->
+<div class="modal-mask" id="confirm-modal">
+  <div class="modal" style="width:400px">
+    <div class="modal-head" id="confirm-title">确认操作</div>
+    <div class="modal-body" id="confirm-message" style="color:var(--text-sub)"></div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="confirm-cancel">取消</button>
+      <button class="btn-danger-solid" id="confirm-ok">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 重命名会话弹窗 ========== -->
+<div class="modal-mask" id="rename-modal">
+  <div class="modal" style="width:420px">
+    <div class="modal-head">重命名会话</div>
+    <div class="modal-body">
+      <div class="field"><input type="text" id="rename-input" maxlength="100"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="rename-cancel">取消</button>
+      <button class="btn-primary" id="rename-ok">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="/lib/axios.min.js"></script>
+<script src="/js/api.js?v=20261010b"></script>
+<script src="/js/app.js?v=20261010b"></script>
+<script src="/js/basic.js?v=20261010b"></script>
+<script src="/js/assignments.js?v=20261010b"></script>
+<script src="/js/grading.js?v=20261010b"></script>
+<script src="/js/generate.js?v=20261010b"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 本地配置与密钥
+.env
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Trae 规格工作目录（按需保留，默认不入库）
+.trae/

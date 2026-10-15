@@ -1,0 +1,75 @@
+# AI 智能助手一键编排：mysql 8.4 + flask web
+# 用法：cp .env.example .env（按需修改）→ docker compose up -d
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: aiassistant-mysql
+    # MySQL 8.4 默认认证插件即 caching_sha2_password，无需再显式指定
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass_2026}
+      MYSQL_DATABASE: ${DB_NAME:-ai_assistant}
+      MYSQL_USER: ${DB_USER:-aiapp}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-aiapp_pass_2026}
+      TZ: Asia/Shanghai
+    ports:
+      # 宿主机映射到 3307，避免与本机已装 MySQL 的 3306 冲突
+      - "${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # 首次初始化自动执行（幂等脚本，应用启动时也会再执行一次）
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - localhost
+        - -p${MYSQL_ROOT_PASSWORD:-root_pass_2026}
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    restart: unless-stopped
+
+  web:
+    build: .
+    image: aiassistant-web:latest
+    container_name: aiassistant-web
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-ai_assistant}
+      DB_USER: ${DB_USER:-aiapp}
+      DB_PASSWORD: ${DB_PASSWORD:-aiapp_pass_2026}
+      DB_CONNECT_RETRIES: "30"
+      DB_CONNECT_WAIT: "2"
+      ARK_API_KEY: ${ARK_API_KEY:-}
+      ARK_BASE_URL: ${ARK_BASE_URL:-https://ark.cn-beijing.volces.com/api/v3}
+      ARK_MODEL: ${ARK_MODEL:-doubao-seed-2-1-pro}
+      CONTEXT_LIMIT: ${CONTEXT_LIMIT:-20}
+      SYSTEM_PROMPT: ${SYSTEM_PROMPT:-你是一个乐于助人、回答严谨的中文 AI 助手。}
+      MOCK_LLM: ${MOCK_LLM:-1}
+      PORT: "8000"
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health', timeout=5).status == 200 else 1)"
+      interval: 10s
+      timeout: 8s
+      retries: 10
+      start_period: 25s
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
